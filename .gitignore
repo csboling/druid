@@ -54,6 +54,7 @@ dkms.conf
 Lib/
 Scripts/
 __pycache__/
+*.egg-info
 *.log
 pip-selfcheck.json
 pyvenv.cfg
