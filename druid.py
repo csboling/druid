@@ -194,13 +194,12 @@ def main():
     use_asyncio_event_loop()
 
     with patch_stdout():
-        background_task = asyncio.gather(printer(), return_exceptions=True)
-        loop.run_until_complete(shell())
-        background_task.cancel()
-        loop.run_until_complete(background_task)
-
-    crow.close()
-    exit()
+        try:
+            background_task = asyncio.gather(printer(), return_exceptions=True)
+            loop.run_until_complete(shell())
+            background_task.cancel()
+        finally:
+            crow.close()
 
 if __name__ == '__main__':
   main()
