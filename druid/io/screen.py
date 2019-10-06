@@ -1,8 +1,13 @@
+import logging
+
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.document import Document
 from prompt_toolkit.widgets import TextArea
 
 from druid.io.abstractions import LineHandler, UTF8Writer
+
+
+logger = logging.getLogger(__name__)
 
 
 class TextAreaLineDisplayer:
@@ -12,6 +17,10 @@ class TextAreaLineDisplayer:
 
     def show(self, text):
         s = self.textarea.text + self.fmt(text)
+        logger.debug('show {} to textarea {}'.format(
+            s,
+            self.textarea,
+        ))
         self.textarea.buffer.document = Document(
             text=s,
             cursor_position=len(s),
@@ -25,23 +34,13 @@ class TextAreaLineDisplayer:
 
 
 class TextAreaLineHandler(LineHandler):
-    def __init__(self, textarea: TextArea):
-        self.displayer = TextAreaLineDisplayer(textarea)
-
-    def __call__(self, evt, line, args):
-        self.displayer.show(self.fmt(evt, line, args))
-
-    def fmt(self, evt, line, args):
-        return '{}({})'.format(evt, ','.join(args))
-
-
-class FormattedTextAreaLineHandler(TextAreaLineHandler):
     def __init__(self, textarea: TextArea, fmt):
-        super().__init__(textarea)
-        self.fmt_func = fmt
+        self.displayer = TextAreaLineDisplayer(textarea)
+        self.fmt = fmt
 
-    def fmt(self, evt, line, args):
-        return self.fmt_func(evt, line, args)
+    def __call__(self, *args):
+        s = self.fmt(*args)
+        self.displayer.show(s)
 
 
 class TextAreaLineWriter(UTF8Writer):
@@ -62,7 +61,6 @@ class TextAreaLineWriter(UTF8Writer):
             self.error(exc)
 
     def error(self, exc):
-        print(exc)
         get_app().exit()
 
     def parse(self, cmd):

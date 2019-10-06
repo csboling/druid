@@ -4,7 +4,7 @@ import serial
 import serial.tools.list_ports
 import serial.threaded
 
-from druid.io.abstractions import AsciiParser
+from druid.io.abstractions import AsciiHandler
 
 logger = logging.getLogger(__name__)
 
@@ -37,38 +37,68 @@ class CrowProtocol(serial.threaded.Packetizer):
                 break
 
 
-class CrowResponseParser(AsciiParser):
-    def __init__(self,
-                 in1_handler=None, in2_handler=None,
-                 output_handler=None):
-        self.in1_handler = in1_handler or (lambda evt, line: None)
-        self.in2_handler = in2_handler or (lambda evt, line: None)
-        self.output_handler = output_handler or (lambda evt, line: None)
+class CrowEventHandler(AsciiHandler):
+    def __init__(self, event_handlers):
+        self.event_handlers = event_handlers
 
-
-class CrowCommandParser(CrowResponseParser):
-
-    def parse_line(self, line):
+    def handle_line(self, line):
         if '^^' in line:
             cmds = line.split('^^')
             for cmd in cmds:
                 t3 = cmd.rstrip().partition('(')
+                if len(t3) != 3:
+                    continue
                 evt = t3[0]
                 args = t3[2].rstrip(')').partition(',')
 
-                if evt == "stream" or evt == "change":
-                    handler = self.in1_handler
-                    if args[0] == "2":
-                        handler = self.in2_handler
-                    handler(evt, line, args)
+                try:
+                    handler = self.event_handlers[evt]
+                except KeyError:
+                    continue
+                else:
+                    return handler(line, evt, args)
+
+
+class CrowCommandHandler(CrowEventHandler):
+
+    def __init__(self, event_handlers):
+        super().__init__(event_handlers=dict(
+            self.decorate_handlers(event_handlers)
+        ))
+
+    def decorate_handlers(self, handlers):
+        for evt, inputs in handlers.items():
+            yield (evt, self.combine_handlers(inputs))
+
+    def combine_handlers(self, handlers):
+        def handler(line, evt, args):
+            logger.debug("event '{}', args {}".format(evt, args))
+            if len(args) < 1:
+                return False
+            try:
+                index = int(args[0]) - 1
+            except ValueError:
+                return False
+            else:
+                if index < 0:
+                    return False
+                if index < len(handlers) and handlers[index] is not None:
+                    logger.info('handler found')
+                    handlers[index](line, evt, args)
                     return True
+        return handler
 
 
-class LuaParser(CrowResponseParser):
+class LuaResultHandler(AsciiHandler):
 
-    def parse_line(self, line):
+    def __init__(self, output_handler):
+        self.output_handler = output_handler
+
+    def handle_line(self, line):
         if len(line) > 0:
-            self.output_handler(None, line + '\n', None)
+            self.output_handler(line + '\n')
+            return True
+        return False
 
 
 class CrowConnectionException(Exception):
@@ -105,7 +135,8 @@ class CrowConnection:
         self.serial = None
 
     def connect(self):
-        self.serial = serial.Serial(self.comport, baudrate=115200, timeout=0.1)
+        self.serial = serial.Serial(
+            self.comport, baudrate=115200, timeout=0.1)
         self.protocol = serial.threaded.ReaderThread(
             self.serial,
             lambda: CrowProtocol(parsers=self.parsers),

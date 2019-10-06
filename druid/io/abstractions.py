@@ -1,20 +1,24 @@
 from abc import ABCMeta, abstractmethod
 
 
-class SerialPacketParser(metaclass=ABCMeta):
+class SerialPacketHandler(metaclass=ABCMeta):
     @abstractmethod
     def __call__(self, packet: bytes) -> bool:
         pass
 
 
-class AsciiParser(SerialPacketParser):
+class AsciiHandler(SerialPacketHandler):
     def __call__(self, packet):
-        return self.parse_line(packet.decode('ascii'))
+        return self.handle_line(packet.decode('ascii'))
+
+    @abstractmethod
+    def handle_line(self, line: str) -> bool:
+        pass
 
 
 class LineHandler(metaclass=ABCMeta):
     @abstractmethod
-    def __call__(self, evt: str, line: str, args: [str]):
+    def __call__(self, line: str):
         pass
 
 

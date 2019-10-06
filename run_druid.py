@@ -24,6 +24,9 @@ def main():
         },
         'loggers': {
             'druid.io.crow': {
+                'handlers': [],
+            },
+            'druid.io.screen': {
                 'handlers': ['file'],
             },
         },

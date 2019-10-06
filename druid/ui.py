@@ -15,11 +15,11 @@ from prompt_toolkit.layout.controls import FormattedTextControl
 
 from druid.io.crow import (
     CrowConnection,
-    CrowCommandParser,
-    LuaParser,
+    CrowCommandHandler,
+    LuaResultHandler,
 )
 from druid.io.screen import (
-    FormattedTextAreaLineHandler,
+    TextAreaLineHandler,
     TextAreaLineWriter,
 )
 
@@ -102,31 +102,38 @@ class DruidUI:
         ])
         self.layout = Layout(container, focused_element=self.input_field)
 
-        handlers = dict(
-            in1_handler=FormattedTextAreaLineHandler(
-                self.capture1,
-                lambda evt, line, args: '\ninput[{}] = {}\n'.format(
-                    args[0],
-                    args[2],
-                ),
+        in1_handler = TextAreaLineHandler(
+            self.capture1,
+            lambda evt, line, args: '\ninput[{}] = {}\n'.format(
+                args[0],
+                args[2],
             ),
-            in2_handler=FormattedTextAreaLineHandler(
-                self.capture2,
-                lambda evt, line, args: '\ninput[{}] = {}\n'.format(
-                    args[0],
-                    args[2],
-                ),
+        )
+        in2_handler = TextAreaLineHandler(
+            self.capture2,
+            lambda evt, line, args: '\ninput[{}] = {}\n'.format(
+                args[0],
+                args[2],
             ),
-            output_handler=FormattedTextAreaLineHandler(
-                self.output_field,
-                lambda evt, line, args: '{}\n'.format(line),
-            ),
+        )
+        output_handler = TextAreaLineHandler(
+            self.output_field,
+            lambda line: '{}\n'.format(line),
         )
 
         self.crow = CrowConnection(
             parsers=[
-                CrowCommandParser(**handlers),
-                LuaParser(**handlers),
+                CrowCommandHandler(event_handlers={
+                    'stream': [
+                        in1_handler,
+                        in2_handler,
+                    ],
+                    'change': [
+                        in1_handler,
+                        in2_handler,
+                    ],
+                }),
+                LuaResultHandler(output_handler),
             ],
             writer=DruidWriter(
                 input_field=self.input_field,
