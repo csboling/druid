@@ -1,4 +1,5 @@
 import asyncio
+from functools import reduce
 import logging
 import serial
 import serial.tools.list_ports
@@ -49,14 +50,18 @@ class CrowEventHandler(AsciiHandler):
                 if len(t3) != 3:
                     continue
                 evt = t3[0]
-                args = t3[2].rstrip(')').partition(',')
+                args = t3[2].rstrip(')').split(',')
 
-                try:
-                    handler = self.event_handlers[evt]
-                except KeyError:
-                    continue
-                else:
-                    return handler(line, evt, args)
+                logger.debug("event '{}', args {}".format(evt, args))
+                curr = self.event_handlers
+                for cmp in evt.split('.'):
+                    try:
+                        curr = curr[cmp]
+                    except KeyError:
+                        break
+                    else:
+                        if hasattr(curr, '__call__'):
+                            return curr(line, evt, args)
 
 
 class CrowCommandHandler(CrowEventHandler):
@@ -68,11 +73,16 @@ class CrowCommandHandler(CrowEventHandler):
 
     def decorate_handlers(self, handlers):
         for evt, inputs in handlers.items():
-            yield (evt, self.combine_handlers(inputs))
+            yield from self.combine_handlers(evt, inputs)
 
-    def combine_handlers(self, handlers):
+    def combine_handlers(self, evt, handlers):
+        if evt == 'stream' or evt == 'change':
+            yield from self.combine_io_handlers(evt, handlers)
+        if evt[:2] == 'ii':
+            yield (evt, handlers)
+
+    def combine_io_handlers(self, evt, handlers):
         def handler(line, evt, args):
-            logger.debug("event '{}', args {}".format(evt, args))
             if len(args) < 1:
                 return False
             try:
@@ -86,7 +96,7 @@ class CrowCommandHandler(CrowEventHandler):
                     logger.info('handler found')
                     handlers[index](line, evt, args)
                     return True
-        return handler
+        yield (evt, handler)
 
 
 class LuaResultHandler(AsciiHandler):

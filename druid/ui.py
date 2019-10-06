@@ -65,6 +65,11 @@ class DruidUI:
             style='class:output-field',
             text=DRUID_INTRO,
         )
+        self.ii_capture = TextArea(
+            style='class:capture-field',
+            height=2,
+        )
+
         self.input_field = TextArea(
             height=1,
             prompt='> ',
@@ -73,7 +78,7 @@ class DruidUI:
             wrap_lines=False
         )
 
-        captures = VSplit([self.capture1, self.capture2])
+        captures = VSplit([self.capture1, self.capture2, self.ii_capture])
         container = HSplit([
             captures,
             self.output_field,
@@ -104,17 +109,21 @@ class DruidUI:
 
         in1_handler = TextAreaLineHandler(
             self.capture1,
-            lambda evt, line, args: '\ninput[{}] = {}\n'.format(
+            lambda line, evt, args: '\ninput[{}] = {}\n'.format(
                 args[0],
-                args[2],
+                args[1],
             ),
         )
         in2_handler = TextAreaLineHandler(
             self.capture2,
-            lambda evt, line, args: '\ninput[{}] = {}\n'.format(
+            lambda line, evt, args: 'input[{}] = {}\n'.format(
                 args[0],
-                args[2],
+                args[1],
             ),
+        )
+        ii_handler = TextAreaLineHandler(
+            self.ii_capture,
+            lambda line, evt, args: '{}({})\n'.format(evt, ', '.join(args)),
         )
         output_handler = TextAreaLineHandler(
             self.output_field,
@@ -132,6 +141,7 @@ class DruidUI:
                         in1_handler,
                         in2_handler,
                     ],
+                    'ii': ii_handler,
                 }),
                 LuaResultHandler(output_handler),
             ],
