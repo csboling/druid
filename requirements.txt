@@ -1,0 +1,7 @@
+aiosc==0.1.4
+druid==0.0.1
+prompt-toolkit==2.0.10
+pymonome==0.9.0
+pyserial==3.4
+six==1.12.0
+wcwidth==0.1.7
