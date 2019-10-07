@@ -44,13 +44,12 @@ class CrowFaders(monome.GridApp):
         ]
 
     def on_grid_key(self, x, y, s):
-        logger.debug('grid key: {} {} {}'.format(x, y, s))
         if s == 1 and x <= 3:
             self.faders[x].cancel()
             self.faders[x] = asyncio.async(
                 self.fade_to(x, self.row_to_value(y)))
             self.crow.write(
-                'output[{}].volts = {}\n'.format(
+                'output[{}].volts = {:.2f}\n'.format(
                     x + 1,
                     5.0 / y,
                 )
