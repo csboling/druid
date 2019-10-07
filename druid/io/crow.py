@@ -1,5 +1,4 @@
 import asyncio
-from functools import reduce
 import logging
 import serial
 import serial.tools.list_ports
@@ -132,18 +131,6 @@ class CrowConnection:
                 return port
         logger.error('crow not found')
         raise CrowConnectionException('crow not found')
-
-    # def __enter__(self):
-    #     self.connect()
-    #     return self
-
-    # def __exit__(self, type, value, traceback):
-    #     if value is not None:
-    #         logger.error('crow connection failed', value)
-    #     self.writer.detach(self.protocol)
-    #     if self.protocol is not None:
-    #         self.protocol.__exit__(type, value, traceback)
-    #     self.serial = None
 
     def connect(self):
         if self.comport is None:

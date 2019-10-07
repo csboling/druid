@@ -32,6 +32,9 @@ def main():
             'druid.io.screen': {
                 'handlers': [],
             },
+            'druid.ui': {
+                'handlers': ['file'],
+            },
         },
         'root': {
             'level': 'DEBUG',

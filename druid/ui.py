@@ -22,7 +22,7 @@ from druid.io.crow import (
     CrowCommandHandler,
     LuaResultHandler,
 )
-from druid.io.grid import Grid, HelloApp
+from druid.io.grid import Grid, CrowFaders, EchoApp
 from druid.io.screen import (
     TextAreaLineDisplayer,
     TextAreaLineHandler,
@@ -53,6 +53,7 @@ class DruidWriter(TextAreaLineWriter):
 
     def write(self, s):
         try:
+            logger.debug('tx: {}'.format(repr(s)))
             super().write(s)
         except serial.SerialException as exc:
             logger.error("could not write '{}': {}".format(s, exc))
@@ -150,6 +151,11 @@ class DruidUI:
             lambda line: '{}'.format(line),
         )
 
+        self.writer = DruidWriter(
+            input_field=self.input_field,
+            output_field=self.output_field,
+        )
+
         self.crow = CrowConnection(
             on_connect=lambda transport: self.show(
                 '\n <connected ({})>'.format(transport.serial.port),
@@ -169,13 +175,9 @@ class DruidUI:
                 }),
                 LuaResultHandler(output_handler),
             ],
-            writer=DruidWriter(
-                input_field=self.input_field,
-                output_field=self.output_field,
-            ),
+            writer=self.writer,
         )
-        self.app = HelloApp()
-        self.grid = Grid()
+        self.grid = Grid(CrowFaders(self.writer))
 
     def command(self, parser):
         parser.set_defaults(func=lambda args: self.run_forever(args))
