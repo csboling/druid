@@ -1,4 +1,5 @@
 import asyncio
+import logging
 
 from prompt_toolkit.eventloop.defaults import use_asyncio_event_loop
 from prompt_toolkit.patch_stdout import patch_stdout
@@ -9,19 +10,30 @@ from prompt_toolkit.layout.containers import (
     Window, WindowAlign,
 )
 from prompt_toolkit.layout.layout import Layout
+from prompt_toolkit.layout.screen import Char
 from prompt_toolkit.styles import Style
 from prompt_toolkit.widgets import TextArea
 from prompt_toolkit.layout.controls import FormattedTextControl
+
+import serial
 
 from druid.io.crow import (
     CrowConnection,
     CrowCommandHandler,
     LuaResultHandler,
 )
+from druid.io.grid import Grid, HelloApp
 from druid.io.screen import (
+    TextAreaLineDisplayer,
     TextAreaLineHandler,
     TextAreaLineWriter,
 )
+
+# monkey patch to fix https://github.com/monome/druid/issues/8
+Char.display_mappings['\t'] = '  '
+
+
+logger = logging.getLogger(__name__)
 
 
 DRUID_INTRO = '//// druid. q to quit. h for help\n\n'
@@ -38,6 +50,13 @@ DRUID_HELP = '''
 
 
 class DruidWriter(TextAreaLineWriter):
+
+    def write(self, s):
+        try:
+            super().write(s)
+        except serial.SerialException as exc:
+            logger.error("could not write '{}': {}".format(s, exc))
+            pass
 
     def parse(self, cmd):
         if cmd == "q":
@@ -65,6 +84,7 @@ class DruidUI:
             style='class:output-field',
             text=DRUID_INTRO,
         )
+        self.output = TextAreaLineDisplayer(self.output_field)
         self.ii_capture = TextArea(
             style='class:capture-field',
             height=2,
@@ -127,11 +147,15 @@ class DruidUI:
         )
         output_handler = TextAreaLineHandler(
             self.output_field,
-            lambda line: '{}\n'.format(line),
+            lambda line: '{}'.format(line),
         )
 
         self.crow = CrowConnection(
-            parsers=[
+            on_connect=lambda transport: self.show(
+                '\n <connected ({})>'.format(transport.serial.port),
+            ),
+            on_disconnect=lambda exc: self.show('\n <disconnected>'),
+            handlers=[
                 CrowCommandHandler(event_handlers={
                     'stream': [
                         in1_handler,
@@ -150,9 +174,11 @@ class DruidUI:
                 output_field=self.output_field,
             ),
         )
+        self.app = HelloApp()
+        self.grid = Grid()
 
     def command(self, parser):
-        parser.set_defaults(func=lambda args: self.run_forever())
+        parser.set_defaults(func=lambda args: self.run_forever(args))
 
     async def run(self):
         self.application = Application(
@@ -164,14 +190,19 @@ class DruidUI:
         )
         await self.application.run_async()
 
-    def run_forever(self):
+    def run_forever(self, args):
         loop = asyncio.get_event_loop()
 
-        with self.crow:
-            use_asyncio_event_loop()
-            with patch_stdout():
-                background_task = asyncio.gather(
-                    self.crow.listen(), return_exceptions=True)
-                loop.run_until_complete(self.run())
-                background_task.cancel()
-                loop.run_until_complete(background_task)
+        use_asyncio_event_loop()
+        with patch_stdout():
+            tasks = [
+                self.crow.listen(),
+                self.grid.poll(),
+            ]
+            background_task = asyncio.gather(*tasks, return_exceptions=True)
+            loop.run_until_complete(self.run())
+            background_task.cancel()
+            loop.run_until_complete(background_task)
+
+    def show(self, s):
+        self.output.show(s)

@@ -15,11 +15,11 @@ class CrowProtocol(serial.threaded.Packetizer):
 
     def __init__(self,
                  on_connect=None, on_disconnect=None,
-                 parsers=None):
+                 handlers=None):
         super().__init__()
         self.on_connect = on_connect or (lambda transport: None)
         self.on_disconnect = on_disconnect or (lambda exc: None)
-        self.parsers = parsers or []
+        self.handlers = handlers or []
 
     def connection_made(self, transport):
         super().connection_made(transport)
@@ -29,12 +29,12 @@ class CrowProtocol(serial.threaded.Packetizer):
     def connection_lost(self, exc):
         self.on_disconnect(exc)
         logger.error('connection lost:', exc)
-        super().connection_lost(exc)
+        # super().connection_lost(exc)
 
     def handle_packet(self, packet):
         logger.debug('rx: {}'.format(packet))
-        for parser in self.parsers:
-            if parser(packet):
+        for handler in self.handlers:
+            if handler(packet):
                 break
 
 
@@ -117,10 +117,10 @@ class CrowConnectionException(Exception):
 
 class CrowConnection:
 
-    def __init__(self, parsers, writer, comport=None):
-        self.parsers = parsers
+    def __init__(self, writer, comport=None, **protocol_args):
+        self.protocol_args = protocol_args
         self.writer = writer
-        self.comport = comport or self.find_comport()
+        self.comport = comport
 
     @classmethod
     def find_comport(cls):
@@ -133,23 +133,26 @@ class CrowConnection:
         logger.error('crow not found')
         raise CrowConnectionException('crow not found')
 
-    def __enter__(self):
-        self.connect()
-        return self
+    # def __enter__(self):
+    #     self.connect()
+    #     return self
 
-    def __exit__(self, type, value, traceback):
-        if value is not None:
-            logger.error('crow connection failed', value)
-        self.writer.detach(self.protocol)
-        # self.protocol.__exit__(type, value, traceback)
-        self.serial = None
+    # def __exit__(self, type, value, traceback):
+    #     if value is not None:
+    #         logger.error('crow connection failed', value)
+    #     self.writer.detach(self.protocol)
+    #     if self.protocol is not None:
+    #         self.protocol.__exit__(type, value, traceback)
+    #     self.serial = None
 
     def connect(self):
+        if self.comport is None:
+            self.comport = self.find_comport()
         self.serial = serial.Serial(
             self.comport, baudrate=115200, timeout=0.1)
         self.protocol = serial.threaded.ReaderThread(
             self.serial,
-            lambda: CrowProtocol(parsers=self.parsers),
+            lambda: CrowProtocol(**self.protocol_args),
         ).__enter__()
         self.writer.attach(self.protocol)
 
@@ -157,5 +160,5 @@ class CrowConnection:
         while True:
             try:
                 self.connect()
-            except serial.SerialException:
+            except (serial.SerialException, CrowConnectionException):
                 await asyncio.sleep(1.0)

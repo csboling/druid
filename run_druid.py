@@ -24,14 +24,18 @@ def main():
         },
         'loggers': {
             'druid.io.crow': {
-                'handlers': [],
+                'handlers': ['file'],
+            },
+            'druid.io.grid': {
+                'handlers': ['file'],
             },
             'druid.io.screen': {
-                'handlers': ['file'],
+                'handlers': [],
             },
         },
         'root': {
             'level': 'DEBUG',
+            'propagate': False,
             'handlers': [],
         },
     })
