@@ -15,26 +15,29 @@ matrix:
       env: PATH=$PY37PATH:$PATH
       before_install:
         - choco install python
-        - choco install pip
-        - alias python3=python
+        - curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+        - python get-pip.py
   include:
     - name: 'linux python setup'
       os: linux
+      sudo: true
       before_install:
         - curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-        - python3 get-pip-.py
+        - python3 get-pip.py
+        - alias python=python3
   include:
     - name: 'osx python setup'
       os: osx
       before_install:
         - brew install python
-        - alias pip=pip3
+        - alias python=python3
 
 install:
-  - pip install pyinstaller
+  - python -m pip install --upgrade pip
+  - python -m pip install pyinstaller
 
 script:
-  - pyinstaller --onefile druid.py
+  - python -m pyinstaller --onefile druid.py
   - sleep 1  # Allow pyinstaller to finish writing to stdout
   - ls -l dist
   - ./dist/druid
