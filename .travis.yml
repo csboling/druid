@@ -17,15 +17,21 @@ matrix:
         - choco install python
         - choco install pip
         - alias python3=python
-        - alias pip3=pip
+  include:
+    - name: 'linux python setup'
+      os: linux
+      before_install:
+        - curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+        - python3 get-pip-.py
   include:
     - name: 'osx python setup'
       os: osx
       before_install:
         - brew install python
+        - alias pip=pip3
 
 install:
-  - pip3 install pyinstaller
+  - pip install pyinstaller
 
 script:
   - pyinstaller --onefile druid.py
