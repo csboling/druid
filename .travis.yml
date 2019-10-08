@@ -6,28 +6,29 @@ language: shell
 
 env:
   global:
-    - PY27PATH=/c/Python27:/c/Python27/Scripts
     - PY37PATH=/c/Python37:/c/Python37/Scripts
 
 matrix:
   include:
     - name: 'windows python setup'
       os: windows
-      env: PATH=$PY37PATH
+      env: PATH=$PY37PATH:$PATH
       before_install:
         - choco install python
+	- choco install pip
   include:
     - name: 'osx python setup'
       os: osx
+      env: PATH=$PY37PATH:$PATH
       before_install:
         - brew install python
 
 install:
-  - python -m pip install --upgrade pip
-  - pip install pyinstaller
+  - python3 -m pip install --upgrade pip
+  - pip3 install pyinstaller
 
 script:
   - pyinstaller --onefile druid.py
   - sleep 1  # Allow pyinstaller to finish writing to stdout
   - ls -l dist
-  - dist/hello.exe
+  - dist/druid.exe
