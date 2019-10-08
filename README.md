@@ -1,45 +1,42 @@
 # druid
 
-a basic repl for crow with some utilities
+A basic repl for crow with some utilities
 
-## setup
+## Setup
 
-- requires python 3.5+
-  - windows & osx: https://www.python.org/downloads/
-  - linux: `sudo apt-get install python3 python3-pip`
-- requires pyserial, asyncio, and prompt_toolkit. install & run with:
+- Requires python 3.5+
+  - Windows & OS X: https://www.python.org/downloads/
+  - Linux: `sudo apt-get install python3 python3-pip` or equivalent
+- Requires `pyserial`, and `prompt_toolkit`
 
-note: you might want `python` and `pip` instead of `python3` and `pip3`
-depending on your platform. if `python3` is not found, check that you have 
-python >= 3.5 with`python --version`.
+Note: you might need to use `python` and `pip` instead of `python3` and `pip3` depending on your platform. If `python3` is not found, check that you have python >= 3.5 with`python --version`.
 
-install and run:
+Install and run:
 ```bash
-pip3 install -r requirements.txt
-python3 druid.py
+pip3 install --user .
+druid
 ```
 
-to avoid conflicts with other python applications on your system,
-you can run in a virtualenv instead of installing dependencies
-globally:
+To avoid conflicts with other Python applications on your system, you can run in a virtualenv instead of installing dependencies globally:
 ```bash
-python3 -m venv .
-
-# windows
-source Scripts/activate  # need to do this each time you run a new shell
-
-# other
-source bin/activate  # need to do this each time you run a new shell
-
-pip install -r requirements.txt
-python druid.py
+python3 -m venv .venv
+# Activate the virtualenv
+# Windows
+source .venv/Scripts/activate  # need to do this each time you run a new shell
+# Other
+source .venv/bin/activate  # need to do this each time you run a new shell
+pip install .
+# Need to activate the virtualenv again to add the druid executable to $PATH
+# Windows
+source .venv/Scripts/activate  # need to do this each time you run a new shell
+# Other
+source .venv/bin/activate  # need to do this each time you run a new shell
+druid
 ```
 
-## druid
+## Druid
 
-```
-python3 druid.py
-```
+Start by running `druid`
 
 - type q (enter) to quit.
 - type h (enter) for a list of special commands.
@@ -48,10 +45,10 @@ python3 druid.py
 - will reconnect to crow after a disconnect / restart
 - scrollable console history
 
-example:
+Example:
 
 ```
-t@nav: ~/druid $ python3 druid.py
+druid
 //// druid. q to quit. h for help
 
 > x=6
@@ -64,22 +61,22 @@ t@nav: ~/druid $ python3 druid.py
 > q
 ```
 
-execute a lua script and enter the REPL from the command line:
+Execute a lua script and enter the REPL from the command line:
 ```
-python3 druid.py examples/test-2.lua
+druid examples/test-2.lua
 ```
 
-diagnostic logs are written to druid.log
+Diagnostic logs are written to `druid.log`.
 
-## upload
+## Upload
 
 ```
 python3 upload.py examples/test-2.lua
 ```
 
-uploads the provided lua file to crow & stores it in flash to be executed on boot.
+Uploads the provided lua file to crow & stores it in flash to be executed on boot.
 
-## download
+## Download
 
 ```
 python3 download.py
@@ -91,9 +88,9 @@ prints to screen. copy to file by:
 python3 download.py > feathers.lua
 ```
 
-## examples
+## Examples
 
-druid comes with a bunch of example scripts to help introduce crow's syntax, and spur your imagination with some zany ideas. Here's the list with a brief description of each (most scripts have a longer description including the assignment of ins and outs at the top of the script):
+Druid comes with a bunch of example scripts to help introduce crow's syntax, and spur your imagination with some zany ideas. Here's the list with a brief description of each (most scripts have a longer description including the assignment of ins and outs at the top of the script):
 
 - `boids.lua`: four simulated birds that fly around your input
 - `booleanlogic.lua`: logic gates determined by two input gates
