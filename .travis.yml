@@ -2,14 +2,19 @@ os:
   - windows
   - linux
   - osx
-language: python
+language: script
+
+env:
+  global:
+    - PY37PATH=/c/Python37:/c/Python37/Scripts
+    - PATH=$PY37PATH:$PATH
 
 install:
   - python -m pip install --upgrade pip
   - pip install pyinstaller
 
 script:
-  - pyinstaller --onefile hello.py
+  - pyinstaller --onefile druid.py
   - sleep 1  # Allow pyinstaller to finish writing to stdout
   - ls -l dist
   - dist/hello.exe
