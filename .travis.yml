@@ -15,7 +15,7 @@ matrix:
       env: PATH=$PY37PATH:$PATH
       before_install:
         - choco install python
-	- choco install pip
+        - choco install pip
   include:
     - name: 'osx python setup'
       os: osx
