@@ -16,19 +16,19 @@ matrix:
       before_install:
         - choco install python
         - choco install pip
+        - alias python3=python
+        - alias pip3=pip
   include:
     - name: 'osx python setup'
       os: osx
-      env: PATH=$PY37PATH:$PATH
       before_install:
         - brew install python
 
 install:
-  - python3 -m pip install --upgrade pip
   - pip3 install pyinstaller
 
 script:
   - pyinstaller --onefile druid.py
   - sleep 1  # Allow pyinstaller to finish writing to stdout
   - ls -l dist
-  - dist/druid.exe
+  - ./dist/druid
