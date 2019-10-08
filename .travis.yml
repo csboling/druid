@@ -2,11 +2,25 @@ os:
   - windows
   - linux
   - osx
-language: script
+language: shell
 
 env:
   global:
-    - TRAVIS_PYTHON_VERSION="3.7"
+    - PY27PATH=/c/Python27:/c/Python27/Scripts
+    - PY37PATH=/c/Python37:/c/Python37/Scripts
+
+matrix:
+  include:
+    - name: 'windows python setup'
+      os: windows
+      env: PATH=$PY37PATH
+      before_install:
+        - choco install python
+  include:
+    - name: 'osx python setup'
+      os: osx
+      before_install:
+        - brew install python
 
 install:
   - python -m pip install --upgrade pip
