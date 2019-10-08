@@ -7,8 +7,6 @@ language: script
 env:
   global:
     - TRAVIS_PYTHON_VERSION="3.7"
-    - PY37PATH=/c/Python37:/c/Python37/Scripts
-    - PATH=$PY37PATH:$PATH
 
 install:
   - python -m pip install --upgrade pip
