@@ -4,13 +4,18 @@ a basic repl for crow with some utilities
 
 ## setup
 
+get an installer for your platform from [here](https://github.com/monome/druid/releases).
+
+## development
+
 - requires python 3.5+
   - windows & osx: https://www.python.org/downloads/
   - linux: `sudo apt-get install python3 python3-pip`
 - requires pyserial, asyncio, and prompt_toolkit. install & run with:
 ```bash
-sh setup.sh
+python -m venv .
 source Scripts/activate  # need to do this each time you run a new shell
+pip install -r requirements.txt  # only need this to update packages
 python druid.py
 ```
 
