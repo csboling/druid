@@ -1,0 +1,40 @@
+os:
+  - windows
+  - linux
+  - osx
+language: shell
+
+env:
+  global:
+    - PY37PATH=/c/Python37:/c/Python37/Scripts
+
+matrix:
+  include:
+    - name: 'windows python setup'
+      os: windows
+      env: PATH=$PY37PATH:$PATH
+      before_install:
+        - choco install python
+        - curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+        - python get-pip.py
+    - name: 'linux python setup'
+      os: linux
+      before_install:
+        - curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+        - python3 get-pip.py
+        - alias python=python3
+    - name: 'osx python setup'
+      os: osx
+      before_install:
+        - brew install python || brew upgrade python
+	- alias python=python3
+
+install:
+  - python -m pip install --user pyinstaller
+  - python -m pip install --user .
+
+script:
+  - python -m pyinstaller druid.py
+  - sleep 1  # Allow pyinstaller to finish writing to stdout
+  - ls -l dist
+  - ./dist/druid
