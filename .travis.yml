@@ -11,8 +11,6 @@ matrix:
       env: PATH=$PY37PATH:$PATH
       before_install:
         - choco install python
-        - curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-        - python get-pip.py
       install:
         - python -m pip install pyinstaller
         - python -m pip install .
@@ -21,9 +19,10 @@ matrix:
         - ./dist/druid/druid.exe
     - name: 'linux python setup'
       os: linux
+      language: python
       install:
-        - python3 -m pip install pyinstaller
-        - python3 -m pip install .
+        - pip3 install pyinstaller
+        - pip3 install .
       script:
         - pyinstaller -n druid src/druid/main.py
         - ./dist/druid/druid
