@@ -12,6 +12,7 @@ matrix:
       before_install:
         - choco install python
       install:
+        - python -m pip install -U pip
         - pip install pyinstaller
         - pip install .
       script:
@@ -28,6 +29,8 @@ matrix:
         - ls ./dist/druid/druid
     - name: 'osx python setup'
       os: osx
+      before_install:
+        - brew upgrade python
       install:
         - pip3 install pyinstaller
         - pip3 install .
