@@ -17,24 +17,30 @@ matrix:
         - choco install python
         - curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
         - python get-pip.py
+      install:
+        - python -m pip install pyinstaller
+        - python -m pip install .
+      script:
+        - python -m pyinstaller -n druid src/druid/main.py
+        - ./dist/druid/druid.exe
     - name: 'linux python setup'
       os: linux
       before_install:
         - curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
         - python3 get-pip.py
-        - alias python=python3
+      install:
+        - python3 -m pip install pyinstaller
+        - python3 -m pip install .
+      script:
+        - python3 -m pyinstaller -n druid src/druid/main.py
+        - ./dist/druid/druid
     - name: 'osx python setup'
       os: osx
       before_install:
         - brew install python || brew upgrade python
-        - alias python=python3
-
-install:
-  - python -m pip install --user pyinstaller
-  - python -m pip install --user .
-
-script:
-  - python -m pyinstaller druid.py
-  - sleep 1  # Allow pyinstaller to finish writing to stdout
-  - ls -l dist
-  - ./dist/druid
+      install:
+        - python3 -m pip install pyinstaller
+        - python3 -m pip install .
+      script:
+        - python3 -m pyinstaller -n druid src/druid/main.py
+        - ./dist/druid/druid
