@@ -12,11 +12,11 @@ matrix:
       before_install:
         - choco install python
       install:
-        - python -m pip install pyinstaller
-        - python -m pip install .
+        - pip install pyinstaller
+        - pip install .
       script:
         - pyinstaller -n druid src/druid/main.py
-        - ./dist/druid/druid.exe
+        - dir ./dist/druid/druid.exe
     - name: 'linux python setup'
       os: linux
       language: python
@@ -25,12 +25,12 @@ matrix:
         - pip3 install .
       script:
         - pyinstaller -n druid src/druid/main.py
-        - ./dist/druid/druid
+        - ls ./dist/druid/druid
     - name: 'osx python setup'
       os: osx
       install:
-        - python3 -m pip install pyinstaller
-        - python3 -m pip install .
+        - pip3 install pyinstaller
+        - pip3 install .
       script:
         - pyinstaller -n druid src/druid/main.py
-        - ./dist/druid/druid
+        - ls ./dist/druid/druid
